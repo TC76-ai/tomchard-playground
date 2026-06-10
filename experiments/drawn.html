@@ -557,6 +557,22 @@ body {
   padding: 0.5em 1.4em;
   font-size: 0.95em;
 }
+.sprinkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 60;
+  border-radius: 2px;
+}
+.mk-shell { position: relative; }
+.scanstrip {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: var(--bg);
+  z-index: 5;
+  pointer-events: none;
+}
+
 .client-meta { margin-top: 20px; display: flex; flex-direction: column; gap: 4px; }
 .client-meta b {
   font-family: 'Bricolage Grotesque', sans-serif;
