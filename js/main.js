@@ -10,8 +10,8 @@
   'use strict';
 
   var SELECTOR = '.reveal-scroll, .reveal-left, .reveal-right, .draw-line';
-  var STAGGER_MS = 90;   /* delay between siblings */
-  var STAGGER_CAP = 450; /* never wait longer than this */
+  var STAGGER_MS = 140;  /* delay between siblings */
+  var STAGGER_CAP = 700; /* never wait longer than this */
 
   var reducedMotion =
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;

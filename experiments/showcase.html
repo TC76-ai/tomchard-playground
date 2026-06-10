@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiment ii — Ink: a motion showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F4ED;
+  --bg-card: #FDFBF6;
+  --ink: #1A1714;
+  --ink-soft: #5C544D;
+  --ink-softer: #8B847B;
+  --rule: #DDD8CB;
+  --accent: #7E2046;
+  --accent-soft: #A04A6C;
+  --accent-pale: #F2E4EA;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: auto; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Newsreader', serif;
+  font-size: 18px;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--accent); color: var(--bg); }
+
+/* ---- Scroll progress hairline ------------------------------- */
+.progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 90;
+}
+
+/* ---- Custom cursor (desktop only) --------------------------- */
+.cursor-dot, .cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99;
+  display: none;
+}
+.cursor-dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid var(--accent-soft);
+  transform: translate(-50%, -50%);
+  transition: width .35s ease, height .35s ease, opacity .35s ease;
+  opacity: .55;
+}
+.cursor-ring.is-hover { width: 64px; height: 64px; opacity: .9; }
+@media (hover: hover) and (pointer: fine) {
+  .cursor-dot, .cursor-ring { display: block; }
+}
+
+/* ---- Intro curtain ------------------------------------------ */
+.curtain {
+  position: fixed;
+  inset: 0;
+  background: var(--ink);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.curtain span {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(28px, 4vw, 44px);
+  color: var(--bg);
+  opacity: 0;
+}
+.curtain span em { color: var(--accent-soft); }
+
+/* ---- Ink canvas --------------------------------------------- */
+#inkCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 1; }
+
+/* ---- Hero ---------------------------------------------------- */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.hero .eyebrow {
+  font-style: italic;
+  font-size: 20px;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 34px;
+}
+.hero .eyebrow::before { content: ''; width: 44px; height: 1px; background: var(--accent); }
+.hero h1 {
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(52px, 8.5vw, 110px);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  max-width: 11ch;
+}
+.hero h1 .word { display: inline-block; }
+.hero h1 .hl { color: var(--accent); }
+.hero .sub {
+  margin-top: 38px;
+  font-size: 21px;
+  color: var(--ink-soft);
+  max-width: 50ch;
+}
+.scroll-hint {
+  position: absolute;
+  bottom: 44px;
+  left: 40px;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-softer);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.scroll-hint::after {
+  content: '';
+  width: 1px; height: 44px;
+  background: var(--accent);
+  animation: hint 1.8s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes hint {
+  0%   { transform: scaleY(0); }
+  45%  { transform: scaleY(1); transform-origin: top; }
+  55%  { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ---- Marquee ------------------------------------------------- */
+.marquee {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 22px 0;
+  overflow: hidden;
+  background: var(--bg-card);
+  position: relative;
+  z-index: 1;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+.marquee span {
+  font-style: italic;
+  font-size: 26px;
+  white-space: nowrap;
+  padding-right: 18px;
+  color: var(--ink-soft);
+}
+.marquee span em { color: var(--accent); font-weight: 500; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ---- Manifesto: scrub ink fill ------------------------------- */
+.manifesto {
+  padding: 22vh 0;
+  position: relative;
+  z-index: 1;
+}
+.manifesto p {
+  font-size: clamp(30px, 4.6vw, 56px);
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  max-width: 22ch;
+}
+.manifesto .word {
+  display: inline-block;
+  opacity: 0.13;
+  margin-right: 0.26em;
+}
+.manifesto .word.em { font-style: italic; color: var(--accent); }
+
+/* ---- Pinned horizontal process ------------------------------- */
+.process { position: relative; z-index: 1; }
+.process-head { padding: 60px 40px 0; max-width: 1180px; margin: 0 auto; }
+.process-head h2 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(34px, 4.5vw, 54px);
+}
+.process-head h2 em { color: var(--accent); }
+.h-track {
+  display: flex;
+  gap: 28px;
+  padding: 60px 40px 90px;
+  width: max-content;
+}
+.h-card {
+  width: min(72vw, 520px);
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-bottom: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 48px 44px;
+  flex-shrink: 0;
+}
+.h-card .num {
+  font-style: italic;
+  font-size: 64px;
+  color: var(--accent);
+  opacity: .35;
+  line-height: 1;
+}
+.h-card h3 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 30px;
+  margin: 22px 0 14px;
+}
+.h-card p { color: var(--ink-soft); font-size: 17px; line-height: 1.7; }
+
+/* ---- Portfolio tilt cards ------------------------------------ */
+.work {
+  padding: 140px 0;
+  position: relative;
+  z-index: 1;
+}
+.work .eyebrow {
+  font-style: italic;
+  font-size: 20px;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.work .eyebrow::before { content: ''; width: 44px; height: 1px; background: var(--accent); }
+.tilt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+  perspective: 1200px;
+}
+.tilt {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition: box-shadow .4s ease;
+  position: relative;
+}
+.tilt:hover { box-shadow: 0 30px 60px rgba(26,23,20,.12); }
+.tilt-img {
+  aspect-ratio: 16/10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  font-size: 64px;
+  color: var(--accent);
+  background: linear-gradient(135deg, var(--accent-pale), var(--bg));
+  border-bottom: 1px solid var(--rule);
+  transform: translateZ(30px);
+}
+.tilt-body { padding: 28px 30px 32px; transform: translateZ(20px); }
+.tilt-body h3 { font-style: italic; font-weight: 500; font-size: 25px; color: var(--accent); }
+.tilt-body p { font-size: 16px; color: var(--ink-soft); margin-top: 8px; }
+.tilt .sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.45) 50%, transparent 60%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.tilt:hover .sheen { transition: transform .9s ease; transform: translateX(120%); }
+
+/* ---- Closing -------------------------------------------------- */
+.closing {
+  padding: 24vh 0 16vh;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+.closing h2 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: 1.06;
+  letter-spacing: -0.018em;
+  max-width: 13ch;
+}
+.closing h2 .hl { color: var(--accent); }
+.closing .line {
+  display: block;
+  width: 180px;
+  height: 2px;
+  background: var(--accent);
+  margin: 36px 0 44px;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.magnet {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 36px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 100px;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 20px;
+  text-decoration: none;
+  transition: background .3s ease;
+  will-change: transform;
+}
+.magnet:hover { background: var(--accent); }
+.magnet::after { content: '→'; font-style: normal; }
+
+footer {
+  padding: 40px;
+  border-top: 1px solid var(--rule);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-softer);
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+}
+footer em { color: var(--accent); }
+
+@media (max-width: 768px) {
+  .wrap { padding: 0 22px; }
+  .scroll-hint { left: 22px; }
+  .process-head, .h-track { padding-left: 22px; padding-right: 22px; }
+  .manifesto p { max-width: none; }
+}
+
+/* ---- Reduced motion: a calm, static page --------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .curtain, .cursor-dot, .cursor-ring, #inkCanvas, .progress { display: none !important; }
+  .marquee-track { animation: none; }
+  .scroll-hint::after { animation: none; }
+  .manifesto .word { opacity: 1 !important; }
+  .closing .line { transform: scaleX(1); }
+  .h-track { width: auto; flex-wrap: wrap; }
+  .h-card { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="curtain" id="curtain">
+  <span id="curtainText">Tom <em>Chard</em></span>
+</div>
+
+<canvas id="inkCanvas"></canvas>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow" id="heroEyebrow">An experiment in ink &middot; Bristol</div>
+    <h1 id="heroTitle">Websites drawn by <span class="hl">hand,</span> not made by machine.</h1>
+    <p class="sub" id="heroSub">Move your cursor. The page is paper, and you're holding the pen. Every effect here is a technique we can fold into a real site.</p>
+    <div class="scroll-hint">scroll</div>
+  </section>
+</div>
+
+<div class="marquee">
+  <div class="marquee-track" id="marqueeTrack">
+    <span>Hand-built, <em>not generated</em> &middot; </span>
+    <span>Fixed prices &middot; </span>
+    <span>Bristol, Bath &amp; Somerset &middot; </span>
+    <span>Properly built. <em>Then it's yours</em> &middot; </span>
+    <span>Hand-built, <em>not generated</em> &middot; </span>
+    <span>Fixed prices &middot; </span>
+    <span>Bristol, Bath &amp; Somerset &middot; </span>
+    <span>Properly built. <em>Then it's yours</em> &middot; </span>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="manifesto">
+    <p id="manifesto">Most small business websites say nothing. Yours should read like it was <em>written for you</em> — because it was. Watch the ink arrive as you scroll.</p>
+  </section>
+</div>
+
+<section class="process" id="processSection">
+  <div class="process-head">
+    <h2>The process, <em>walked through.</em></h2>
+  </div>
+  <div class="h-track" id="hTrack">
+    <div class="h-card">
+      <div class="num">i</div>
+      <h3>We talk.</h3>
+      <p>About your business — what you sell, who buys it, and what you'd want a stranger to do thirty seconds after landing on your site.</p>
+    </div>
+    <div class="h-card">
+      <div class="num">ii</div>
+      <h3>I sketch the site.</h3>
+      <p>The structure on a page. What's on the homepage, what's in the gallery, what each page is supposed to achieve. You tell me where it's wrong.</p>
+    </div>
+    <div class="h-card">
+      <div class="num">iii</div>
+      <h3>I build it.</h3>
+      <p>Hand-built around your business specifically. Photos where they sell the work. The phone number where customers can see it.</p>
+    </div>
+    <div class="h-card">
+      <div class="num">iv</div>
+      <h3>I hand it over.</h3>
+      <p>Live on your domain, enquiries straight to your inbox, and a walkthrough of how everything works. Done — and it's yours.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="work">
+    <div class="eyebrow">Recent work &middot; tilt the cards</div>
+    <div class="tilt-grid">
+      <article class="tilt">
+        <div class="sheen"></div>
+        <div class="tilt-img">i</div>
+        <div class="tilt-body">
+          <h3>Elliebells Pottery</h3>
+          <p>A quiet, considered site for a Bristol ceramicist — built to feel like the work itself.</p>
+        </div>
+      </article>
+      <article class="tilt">
+        <div class="sheen"></div>
+        <div class="tilt-img">ii</div>
+        <div class="tilt-body">
+          <h3>Your project here</h3>
+          <p>Every card in this grid responds to your hand — the kind of detail customers remember.</p>
+        </div>
+      </article>
+      <article class="tilt">
+        <div class="sheen"></div>
+        <div class="tilt-img">iii</div>
+        <div class="tilt-body">
+          <h3>And here</h3>
+          <p>Sheen, depth and lift on hover; perfectly still and fast on a phone.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2 id="closingTitle">Tell me about <span class="hl">your business.</span></h2>
+    <span class="line" id="closingLine"></span>
+    <a class="magnet" id="magnetBtn" href="mailto:hello@tomchard.uk">Start the conversation</a>
+  </section>
+</div>
+
+<footer>
+  <div>Tom Chard &middot; Bristol &middot; 2026</div>
+  <div>Hand-built, <em>not generated</em></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (reduced || typeof gsap === 'undefined') {
+    var c = document.getElementById('curtain');
+    if (c) c.remove();
+    return; /* static, calm page */
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---- Split helper: wrap words in spans ---------------------- */
+  function splitWords(el, keepClassFor) {
+    var nodes = Array.prototype.slice.call(el.childNodes);
+    el.innerHTML = '';
+    nodes.forEach(function (node) {
+      var italic = node.nodeName === 'EM';
+      var hl = node.nodeName === 'SPAN';
+      var text = node.textContent;
+      text.split(/\s+/).forEach(function (w) {
+        if (!w) return;
+        var s = document.createElement('span');
+        s.className = 'word' + (italic ? ' em' : '') + (hl ? ' hl' : '');
+        s.textContent = w;
+        el.appendChild(s);
+        el.appendChild(document.createTextNode(' '));
+      });
+    });
+    return el.querySelectorAll('.word');
+  }
+
+  /* ---- Intro curtain + hero entrance -------------------------- */
+  var heroWords = splitWords(document.getElementById('heroTitle'));
+  gsap.set(heroWords, { yPercent: 110, opacity: 0, rotate: 4 });
+  gsap.set('#heroEyebrow, #heroSub, .scroll-hint', { opacity: 0, y: 20 });
+
+  var intro = gsap.timeline();
+  intro
+    .to('#curtainText', { opacity: 1, duration: 0.7, ease: 'power2.out' })
+    .to('#curtainText', { opacity: 0, duration: 0.45, delay: 0.5 })
+    .to('#curtain', { yPercent: -100, duration: 0.9, ease: 'power3.inOut' })
+    .set('#curtain', { display: 'none' })
+    .to(heroWords, {
+      yPercent: 0, opacity: 1, rotate: 0,
+      duration: 1.1, ease: 'power3.out', stagger: 0.07
+    }, '-=0.45')
+    .to('#heroEyebrow', { opacity: 1, y: 0, duration: 0.8 }, '-=0.7')
+    .to('#heroSub',     { opacity: 1, y: 0, duration: 0.8 }, '-=0.55')
+    .to('.scroll-hint', { opacity: 1, y: 0, duration: 0.8 }, '-=0.4');
+
+  /* ---- Scroll progress ---------------------------------------- */
+  gsap.to('#progress', {
+    scaleX: 1, ease: 'none',
+    scrollTrigger: { start: 0, end: 'max', scrub: 0.3 }
+  });
+
+  /* ---- Manifesto ink fill -------------------------------------- */
+  var manWords = splitWords(document.getElementById('manifesto'));
+  gsap.to(manWords, {
+    opacity: 1, ease: 'none', stagger: 0.6,
+    scrollTrigger: {
+      trigger: '.manifesto',
+      start: 'top 75%',
+      end: 'bottom 45%',
+      scrub: 0.4
+    }
+  });
+
+  /* ---- Pinned horizontal process -------------------------------- */
+  var track = document.getElementById('hTrack');
+  function trackShift() { return -(track.scrollWidth - window.innerWidth); }
+  gsap.to(track, {
+    x: trackShift, ease: 'none',
+    scrollTrigger: {
+      trigger: '#processSection',
+      start: 'top top',
+      end: function () { return '+=' + (track.scrollWidth - window.innerWidth); },
+      pin: true,
+      scrub: 0.5,
+      invalidateOnRefresh: true
+    }
+  });
+
+  /* ---- Closing line + title ------------------------------------ */
+  gsap.from('#closingTitle', {
+    y: 60, opacity: 0, duration: 1.3, ease: 'power3.out',
+    scrollTrigger: { trigger: '.closing', start: 'top 70%' }
+  });
+  gsap.to('#closingLine', {
+    scaleX: 1, duration: 1.4, ease: 'power3.inOut',
+    scrollTrigger: { trigger: '.closing', start: 'top 60%' }
+  });
+
+  /* ---- Ink canvas: drifting blooms + cursor wash ---------------- */
+  var canvas = document.getElementById('inkCanvas');
+  var ctx = canvas.getContext('2d');
+  var blots = [];
+  var W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function addBlot(x, y, r, life, drift) {
+    if (blots.length > 60) blots.shift();
+    blots.push({
+      x: x, y: y, r: r, maxR: r * (2.4 + Math.random()),
+      life: life, age: 0,
+      dx: (Math.random() - 0.5) * drift,
+      dy: (Math.random() - 0.5) * drift
+    });
+  }
+
+  /* ambient blooms */
+  for (var i = 0; i < 5; i++) {
+    addBlot(Math.random() * window.innerWidth, Math.random() * window.innerHeight,
+            60 + Math.random() * 120, 900 + Math.random() * 600, 0.3);
+  }
+  setInterval(function () {
+    addBlot(Math.random() * W, Math.random() * H,
+            50 + Math.random() * 110, 900 + Math.random() * 600, 0.3);
+  }, 2600);
+
+  /* cursor wash */
+  var lastSpawn = 0;
+  if (fine) {
+    window.addEventListener('mousemove', function (e) {
+      var now = performance.now();
+      if (now - lastSpawn > 70) {
+        addBlot(e.clientX, e.clientY, 14 + Math.random() * 18, 160, 1.4);
+        lastSpawn = now;
+      }
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = blots.length - 1; i >= 0; i--) {
+      var b = blots[i];
+      b.age++;
+      if (b.age > b.life) { blots.splice(i, 1); continue; }
+      var t = b.age / b.life;
+      var r = b.r + (b.maxR - b.r) * t;
+      var alpha = 0.085 * (1 - t);
+      b.x += b.dx; b.y += b.dy;
+      var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+      g.addColorStop(0, 'rgba(126, 32, 70,' + alpha + ')');
+      g.addColorStop(1, 'rgba(126, 32, 70, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  /* ---- Custom cursor -------------------------------------------- */
+  if (fine) {
+    var dot = document.getElementById('cursorDot');
+    var ring = document.getElementById('cursorRing');
+    var rx = 0, ry = 0, tx = 0, ty = 0;
+    window.addEventListener('mousemove', function (e) {
+      tx = e.clientX; ty = e.clientY;
+      dot.style.transform = 'translate(' + tx + 'px,' + ty + 'px) translate(-50%,-50%)';
+    });
+    gsap.ticker.add(function () {
+      rx += (tx - rx) * 0.14;
+      ry += (ty - ry) * 0.14;
+      ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)';
+    });
+    document.querySelectorAll('a, .tilt').forEach(function (el) {
+      el.addEventListener('mouseenter', function () { ring.classList.add('is-hover'); });
+      el.addEventListener('mouseleave', function () { ring.classList.remove('is-hover'); });
+    });
+  }
+
+  /* ---- Tilt cards ------------------------------------------------ */
+  if (fine) {
+    document.querySelectorAll('.tilt').forEach(function (card) {
+      card.addEventListener('mousemove', function (e) {
+        var rect = card.getBoundingClientRect();
+        var px = (e.clientX - rect.left) / rect.width - 0.5;
+        var py = (e.clientY - rect.top) / rect.height - 0.5;
+        gsap.to(card, {
+          rotateY: px * 10, rotateX: -py * 10,
+          duration: 0.5, ease: 'power2.out',
+          transformPerspective: 900
+        });
+      });
+      card.addEventListener('mouseleave', function () {
+        gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'elastic.out(1, 0.55)' });
+      });
+    });
+  }
+
+  /* ---- Magnetic button -------------------------------------------- */
+  if (fine) {
+    var btn = document.getElementById('magnetBtn');
+    btn.addEventListener('mousemove', function (e) {
+      var r = btn.getBoundingClientRect();
+      gsap.to(btn, {
+        x: (e.clientX - (r.left + r.width / 2)) * 0.3,
+        y: (e.clientY - (r.top + r.height / 2)) * 0.3,
+        duration: 0.4, ease: 'power2.out'
+      });
+    });
+    btn.addEventListener('mouseleave', function () {
+      gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.4)' });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
