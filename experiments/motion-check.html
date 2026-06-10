@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion check</title>
+<link rel="stylesheet" href="../css/animations.css">
+<style>
+  body {
+    font-family: Georgia, serif;
+    background: #F7F4ED;
+    color: #1A1714;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+    line-height: 1.6;
+  }
+  h1 { font-style: italic; font-weight: 500; }
+  .panel {
+    background: #FDFBF6;
+    border: 1px solid #DDD8CB;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .panel h2 { font-size: 18px; font-style: italic; margin: 0 0 10px; color: #7E2046; }
+  #report div { padding: 4px 0; font-size: 16px; }
+  .ok   { color: #1d6b35; }
+  .bad  { color: #a01818; }
+
+  /* Test 1: pure CSS, always-on, ignores everything */
+  .spinner {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 4px solid #DDD8CB;
+    border-top-color: #7E2046;
+    animation: spin 1s linear infinite;
+    margin: 10px 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .box {
+    width: 100%;
+    padding: 18px;
+    background: #F2E4EA;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  .spacer {
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8B847B;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>Motion check</h1>
+<p>This page tests each part of the animation system separately.</p>
+
+<div class="panel">
+  <h2>Test 1 — Can this browser animate at all?</h2>
+  <div class="spinner"></div>
+  <p>The circle above should be spinning continuously. If it is frozen,
+  the browser or device is blocking all CSS animation.</p>
+</div>
+
+<div class="panel">
+  <h2>Test 2 — System report</h2>
+  <div id="report"><div class="bad">JavaScript is NOT running — js/main.js
+  and the scroll reveals cannot work.</div></div>
+</div>
+
+<div class="panel">
+  <h2>Test 3 — Page-load reveal (animations.css)</h2>
+  <div class="box reveal-load">If you saw this box fade upwards into place
+  when the page loaded, the shared animations.css file is working.</div>
+</div>
+
+<div class="spacer">scroll down slowly &darr;</div>
+
+<div class="panel">
+  <h2>Test 4 — Scroll-triggered reveal (main.js)</h2>
+  <div class="box reveal-scroll">If this box rose into view as you scrolled
+  here, the IntersectionObserver in js/main.js is working. If this text is
+  invisible or just appeared with no movement, the JS reveal is the problem.</div>
+</div>
+
+<script src="../js/main.js" defer></script>
+<script>
+(function () {
+  var report = document.getElementById('report');
+  var lines = [];
+
+  function add(label, good, detail) {
+    lines.push('<div class="' + (good ? 'ok' : 'bad') + '">' +
+      (good ? '&#10003; ' : '&#10007; ') + label +
+      (detail ? ' — ' + detail : '') + '</div>');
+  }
+
+  add('JavaScript is running', true);
+
+  var rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  add('Reduce Motion is ' + (rm ? 'ON' : 'off'), !rm,
+      rm ? 'this device is telling websites to switch animations OFF'
+         : 'animations are allowed');
+
+  add('IntersectionObserver supported', 'IntersectionObserver' in window);
+
+  // Check animations.css actually loaded by reading a known style
+  var probe = document.createElement('div');
+  probe.className = 'reveal-scroll';
+  probe.style.position = 'absolute';
+  document.body.appendChild(probe);
+  var opacity = getComputedStyle(probe).opacity;
+  // Before JS reveals it, .reveal-scroll should compute to opacity 0
+  add('animations.css stylesheet applied', opacity === '0' || probe.classList.contains('is-visible'),
+      'computed opacity: ' + opacity);
+  probe.remove();
+
+  report.innerHTML = lines.join('');
+})();
+</script>
+
+</body>
+</html>
