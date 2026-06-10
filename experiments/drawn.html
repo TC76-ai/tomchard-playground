@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiment iv — Drawn: a site that draws itself</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #131019;
+  --bg-card: #1C1824;
+  --paper: #F5EFE4;
+  --paper-soft: #BDB2A6;
+  --paper-faint: #837A6F;
+  --rule: #2E2837;
+  --rose: #FF4D7A;
+  --rose-soft: #FF85A3;
+  --gilt: #D8A24A;
+  --pencil: #6E6578;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--paper);
+  font-family: 'Newsreader', serif;
+  font-size: 18px;
+  line-height: 1.65;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--rose); color: var(--bg); }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 2; }
+
+/* ---- Atmosphere (always on, this page lives at midnight) ------ */
+#dustCanvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+.grain {
+  position: fixed; inset: -50%;
+  width: 200%; height: 200%;
+  z-index: 1; pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  animation: grain-shift 7s steps(8) infinite;
+}
+@keyframes grain-shift {
+  0% { transform: translate(0,0); } 25% { transform: translate(-2%,1.5%); }
+  50% { transform: translate(1.5%,-2%); } 75% { transform: translate(-1%,-1%); }
+  100% { transform: translate(0,0); }
+}
+.lamplight {
+  position: fixed;
+  width: 70vmax; height: 70vmax;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle,
+    rgba(216,162,74,0.10) 0%, rgba(255,77,122,0.05) 35%, transparent 70%);
+  transform: translate(-50%,-50%);
+}
+
+/* ---- Pencil-line scroll progress ------------------------------ */
+.progress {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  z-index: 90;
+}
+.progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--pencil), var(--rose));
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+/* ---- Custom cursor -------------------------------------------- */
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99;
+  display: none;
+}
+.cursor-dot { width: 8px; height: 8px; background: var(--rose); transform: translate(-50%,-50%); }
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid var(--rose-soft);
+  transform: translate(-50%,-50%);
+  transition: width .35s ease, height .35s ease, opacity .35s ease;
+  opacity: .5;
+}
+.cursor-ring.is-hover { width: 64px; height: 64px; opacity: .9; }
+@media (hover: hover) and (pointer: fine) { .cursor-dot, .cursor-ring { display: block; } }
+
+/* ---- Hero ------------------------------------------------------ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+.hero .eyebrow {
+  font-style: italic;
+  font-size: 19px;
+  color: var(--gilt);
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  opacity: 0;
+}
+.hero .eyebrow::before { content: ''; width: 44px; height: 1px; background: var(--gilt); }
+
+/* Outline → ink fill headline: two stacked copies */
+.draw-title {
+  position: relative;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(56px, 9.5vw, 128px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  max-width: 10ch;
+}
+.draw-title .outline,
+.draw-title .fill {
+  display: block;
+}
+.draw-title .outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--pencil);
+}
+.draw-title .fill {
+  position: absolute;
+  inset: 0;
+  color: var(--paper);
+  clip-path: inset(0 100% 0 0);
+}
+.draw-title .fill .hl { color: var(--rose); }
+
+.hero .sub {
+  margin-top: 36px;
+  font-size: 21px;
+  color: var(--paper-soft);
+  max-width: 46ch;
+  opacity: 0;
+}
+.hero .flourish {
+  margin-top: 30px;
+  width: min(420px, 70vw);
+  height: auto;
+  overflow: visible;
+}
+.hero .flourish path {
+  fill: none;
+  stroke: var(--gilt);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.scroll-hint {
+  position: absolute;
+  bottom: 44px; left: 40px;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--paper-faint);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+}
+.scroll-hint::after {
+  content: '';
+  width: 1px; height: 44px;
+  background: var(--rose);
+  animation: hint 1.8s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes hint {
+  0% { transform: scaleY(0); } 45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ---- Act II: the sketch becomes a site (pinned) ---------------- */
+.atelier { position: relative; z-index: 2; }
+.atelier-stage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4vh;
+}
+.atelier h2 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(28px, 3.6vw, 44px);
+  text-align: center;
+}
+.atelier h2 em { color: var(--rose); }
+.stage-caption {
+  font-style: italic;
+  color: var(--paper-faint);
+  font-size: 16px;
+  min-height: 1.5em;
+}
+
+.easel {
+  position: relative;
+  width: min(860px, 88vw);
+  aspect-ratio: 16 / 10;
+}
+.easel svg, .mini-site {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.easel svg { overflow: visible; }
+.sketch-line {
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 7;
+}
+
+/* the "real" mini site that materialises over the sketch */
+.mini-site {
+  font-size: clamp(8px, 1.6vw, 14px);
+  border-radius: 6px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #F7F4ED;
+  color: #1A1714;
+  box-shadow: 0 40px 90px rgba(0,0,0,.5);
+}
+.mini-site > * { opacity: 0; }
+.ms-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.9em 1.4em;
+  background: #1A1714;
+}
+.ms-bar i { width: 0.7em; height: 0.7em; border-radius: 50%; background: #5C544D; }
+.ms-bar i:first-child { background: var(--rose); }
+.ms-bar span {
+  margin-left: 1em;
+  color: #F7F4ED;
+  font-style: italic;
+  font-size: 1.05em;
+}
+.ms-body {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 2em;
+  padding: 2.4em 2.6em;
+  align-items: center;
+}
+.ms-copy h3 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 2.6em;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.ms-copy h3 em { color: #7E2046; }
+.ms-copy p { margin-top: 1em; color: #5C544D; font-size: 1.1em; max-width: 30ch; }
+.ms-btn {
+  display: inline-block;
+  margin-top: 1.6em;
+  background: #1A1714;
+  color: #F7F4ED;
+  font-style: italic;
+  padding: 0.8em 1.8em;
+  border-radius: 10em;
+  font-size: 1.05em;
+}
+.ms-img {
+  aspect-ratio: 4 / 3;
+  border-radius: 0.5em;
+  background: linear-gradient(135deg, #F2E4EA, #EFEBE0 60%, #E8E3D5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  font-size: 3em;
+  color: #7E2046;
+}
+
+/* ---- Velocity marquee ------------------------------------------ */
+.marquee {
+  padding: 90px 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+.marquee-row {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.marquee-row span {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(48px, 7vw, 92px);
+  line-height: 1.1;
+  white-space: nowrap;
+  padding-right: 0.6em;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--pencil);
+}
+.marquee-row span em { color: var(--rose); -webkit-text-stroke: 0; }
+.marquee-row.r2 span { color: var(--paper); -webkit-text-stroke: 0; }
+.marquee-row.r2 span em { color: var(--gilt); }
+
+/* ---- Deck: stacked capability cards ----------------------------- */
+.deck { position: relative; z-index: 2; }
+.deck-head { text-align: center; padding: 40px 20px 8vh; }
+.deck-head h2 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(34px, 4.5vw, 54px);
+}
+.deck-head h2 em { color: var(--rose); }
+.deck-card {
+  position: sticky;
+  top: 12vh;
+  width: min(820px, 90vw);
+  margin: 0 auto 14vh;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--rose);
+  border-radius: 8px;
+  padding: 56px 54px;
+  box-shadow: 0 -20px 60px rgba(0,0,0,.45);
+}
+.deck-card:nth-child(odd of .deck-card) { border-top-color: var(--gilt); }
+.deck-card .num {
+  font-style: italic;
+  font-size: 56px;
+  color: var(--rose);
+  opacity: .4;
+  line-height: 1;
+}
+.deck-card:nth-child(odd of .deck-card) .num { color: var(--gilt); }
+.deck-card h3 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 36px);
+  margin: 18px 0 12px;
+}
+.deck-card p { color: var(--paper-soft); max-width: 56ch; font-size: 18px; }
+
+/* ---- Manifesto ink fill ----------------------------------------- */
+.manifesto { padding: 20vh 0; position: relative; z-index: 2; }
+.manifesto p {
+  font-size: clamp(30px, 4.4vw, 54px);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  max-width: 21ch;
+}
+.manifesto .word { display: inline-block; opacity: 0.1; margin-right: 0.26em; }
+.manifesto .word.em { font-style: italic; color: var(--rose); }
+
+/* ---- Closing: the signature -------------------------------------- */
+.closing {
+  padding: 18vh 0 14vh;
+  position: relative;
+  z-index: 2;
+}
+.closing h2 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(44px, 6.5vw, 88px);
+  line-height: 1.06;
+  letter-spacing: -0.018em;
+  max-width: 13ch;
+}
+.closing h2 .hl { color: var(--rose); }
+.signature {
+  margin: 48px 0 40px;
+  width: min(340px, 60vw);
+  height: auto;
+  overflow: visible;
+}
+.signature path {
+  fill: none;
+  stroke: var(--gilt);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.magnet {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 38px;
+  background: var(--paper);
+  color: var(--bg);
+  border-radius: 100px;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 20px;
+  text-decoration: none;
+  transition: background .3s ease, color .3s ease;
+  will-change: transform;
+}
+.magnet:hover { background: var(--rose); color: var(--paper); }
+.magnet::after { content: '→'; font-style: normal; }
+
+footer {
+  padding: 40px;
+  border-top: 1px solid var(--rule);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--paper-faint);
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+footer em { color: var(--gilt); }
+
+@media (max-width: 768px) {
+  .wrap { padding: 0 22px; }
+  .scroll-hint { left: 22px; }
+  .ms-body { grid-template-columns: 1fr; gap: 1.4em; }
+  .ms-img { display: none; }
+  .deck-card { padding: 40px 30px; }
+}
+
+/* ---- Reduced motion: everything visible, nothing moves ----------- */
+@media (prefers-reduced-motion: reduce) {
+  .grain, .lamplight, #dustCanvas, .cursor-dot, .cursor-ring { display: none !important; }
+  .scroll-hint::after { animation: none; }
+  .hero .eyebrow, .hero .sub, .scroll-hint { opacity: 1 !important; }
+  .draw-title .fill { clip-path: none; }
+  .mini-site > * { opacity: 1 !important; }
+  .manifesto .word { opacity: 1 !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress"><i id="progressBar"></i></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<canvas id="dustCanvas"></canvas>
+<div class="grain"></div>
+<div class="lamplight" id="lamplight"></div>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow" id="heroEyebrow">A small web practice &middot; Bristol &middot; after dark</div>
+    <h1 class="draw-title" id="drawTitle">
+      <span class="outline">Drawn by hand. Built to last.</span>
+      <span class="fill" id="titleFill">Drawn by <span class="hl">hand.</span> Built to last.</span>
+    </h1>
+    <svg class="flourish" viewBox="0 0 420 36" aria-hidden="true">
+      <path id="flourishPath" d="M4 24 C 70 6, 140 34, 210 18 S 350 4, 416 22" />
+    </svg>
+    <p class="sub" id="heroSub">Scroll, and watch a website get made — sketched in pencil, inked, and signed. Every line on this page is a technique I can build into yours.</p>
+    <div class="scroll-hint" id="scrollHint">scroll to begin</div>
+  </section>
+</div>
+
+<section class="atelier" id="atelier">
+  <div class="atelier-stage">
+    <h2>First the <em>sketch,</em> then the site.</h2>
+    <div class="easel">
+      <svg viewBox="0 0 860 538" preserveAspectRatio="none" aria-hidden="true" id="sketchSvg">
+        <rect class="sketch-line" x="3" y="3" width="854" height="532" rx="8"/>
+        <line class="sketch-line" x1="3" y1="56" x2="857" y2="56"/>
+        <circle class="sketch-line" cx="34" cy="30" r="8"/>
+        <circle class="sketch-line" cx="62" cy="30" r="8"/>
+        <circle class="sketch-line" cx="90" cy="30" r="8"/>
+        <rect class="sketch-line" x="56" y="120" width="380" height="56" rx="4"/>
+        <rect class="sketch-line" x="56" y="196" width="320" height="18" rx="4"/>
+        <rect class="sketch-line" x="56" y="226" width="280" height="18" rx="4"/>
+        <rect class="sketch-line" x="56" y="290" width="170" height="46" rx="23"/>
+        <rect class="sketch-line" x="500" y="120" width="300" height="240" rx="6"/>
+        <line class="sketch-line" x1="500" y1="120" x2="800" y2="360"/>
+        <line class="sketch-line" x1="800" y1="120" x2="500" y2="360"/>
+      </svg>
+      <div class="mini-site" id="miniSite" aria-hidden="true">
+        <div class="ms-bar"><i></i><i></i><i></i><span>elliebellspottery.co.uk</span></div>
+        <div class="ms-body">
+          <div class="ms-copy">
+            <h3>Pottery, thrown <em>by hand</em> in Keynsham.</h3>
+            <p>Small-batch ceramics for kitchens that get used. Commissions open for spring.</p>
+            <span class="ms-btn">See the work</span>
+          </div>
+          <div class="ms-img">&#9998;</div>
+        </div>
+      </div>
+    </div>
+    <div class="stage-caption" id="stageCaption">pencil&hellip;</div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-row" id="row1">
+    <span>Hand-built <em>·</em> not generated <em>·</em> </span>
+    <span>Hand-built <em>·</em> not generated <em>·</em> </span>
+    <span>Hand-built <em>·</em> not generated <em>·</em> </span>
+    <span>Hand-built <em>·</em> not generated <em>·</em> </span>
+  </div>
+  <div class="marquee-row r2" id="row2">
+    <span>Fixed prices <em>·</em> then it's yours <em>·</em> </span>
+    <span>Fixed prices <em>·</em> then it's yours <em>·</em> </span>
+    <span>Fixed prices <em>·</em> then it's yours <em>·</em> </span>
+    <span>Fixed prices <em>·</em> then it's yours <em>·</em> </span>
+  </div>
+</div>
+
+<section class="deck">
+  <div class="deck-head"><h2>What goes <em>into one.</em></h2></div>
+  <div class="deck-card">
+    <div class="num">i</div>
+    <h3>Type that carries the voice.</h3>
+    <p>One serif, chosen deliberately, doing everything from whisper to headline. The typography on this very page is the same family your site would use — set with intent, not defaults.</p>
+  </div>
+  <div class="deck-card">
+    <div class="num">ii</div>
+    <h3>Motion with a purpose.</h3>
+    <p>Reveals, parallax, drawn lines — but only where they help someone understand the page. Everything respects visitors who ask for reduced motion. Restraint is part of the craft.</p>
+  </div>
+  <div class="deck-card">
+    <div class="num">iii</div>
+    <h3>Fast on a phone in a field.</h3>
+    <p>Hand-written code with no framework weight. Your customers are on mobile data outside the property they want you to work on — the site loads before they lose patience.</p>
+  </div>
+  <div class="deck-card">
+    <div class="num">iv</div>
+    <h3>Yours, outright.</h3>
+    <p>No subscriptions holding the site hostage. When it's done it's handed over — files, domain, the lot — with a walkthrough of how everything works.</p>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="manifesto">
+    <p id="manifesto">A template can be <em>opened.</em> A website can only be <em>made</em> — by someone who asked about your business first.</p>
+  </section>
+
+  <section class="closing">
+    <h2 id="closingTitle">Every site leaves <span class="hl">signed.</span></h2>
+    <svg class="signature" viewBox="0 0 340 130" aria-hidden="true">
+      <path id="sigPath" d="M22 38 C 60 26, 110 22, 128 30 M76 30 C 70 56, 58 92, 46 108 M104 74 C 96 92, 96 102, 108 98 C 122 92, 128 76, 124 70 C 120 64, 108 72, 112 84 C 116 96, 132 94, 140 82 M156 84 C 150 96, 156 102, 166 96 C 176 90, 178 78, 170 76 C 162 74, 156 82, 158 88 M186 92 C 190 80, 196 72, 204 74 C 210 76, 208 88, 206 94 M206 80 C 212 72, 222 70, 226 76 C 230 82, 226 92, 224 96 M242 60 C 254 56, 300 48, 318 46 M262 46 C 256 70, 248 96, 244 106" />
+    </svg>
+    <a class="magnet" id="magnetBtn" href="mailto:hello@tomchard.uk">Tell me about your business</a>
+  </section>
+</div>
+
+<footer>
+  <div>Tom Chard &middot; Bristol &middot; 2026</div>
+  <div>Hand-built, <em>not generated</em></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (reduced || typeof gsap === 'undefined') return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---- Helper: prepare an SVG path for self-drawing ------------- */
+  function prepDraw(path) {
+    var len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    return len;
+  }
+
+  /* ---- Hero entrance: outline appears, ink fills, flourish draws */
+  var flourish = document.getElementById('flourishPath');
+  prepDraw(flourish);
+
+  var intro = gsap.timeline({ delay: 0.2 });
+  intro
+    .from('.draw-title .outline', { opacity: 0, y: 40, duration: 1.0, ease: 'power3.out' })
+    .to('#titleFill', { clipPath: 'inset(0 0% 0 0)', duration: 1.6, ease: 'power2.inOut' }, '-=0.2')
+    .to(flourish, { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut' }, '-=1.0')
+    .to('#heroEyebrow', { opacity: 1, duration: 0.8 }, '-=0.8')
+    .to('#heroSub', { opacity: 1, duration: 0.8 }, '-=0.5')
+    .to('#scrollHint', { opacity: 1, duration: 0.8 }, '-=0.4');
+
+  /* ---- Progress pencil line -------------------------------------- */
+  gsap.to('#progressBar', {
+    scaleX: 1, ease: 'none',
+    scrollTrigger: { start: 0, end: 'max', scrub: 0.3 }
+  });
+
+  /* ---- Act II: pinned sketch-to-site metamorphosis ---------------- */
+  var sketchLines = Array.prototype.slice.call(
+    document.querySelectorAll('#sketchSvg .sketch-line'));
+  sketchLines.forEach(function (el) {
+    var len = el.getTotalLength ? el.getTotalLength() : 1000;
+    el.style.strokeDasharray = len + ' ' + len;
+    el.style.strokeDashoffset = len;
+  });
+
+  var caption = document.getElementById('stageCaption');
+  var act2 = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#atelier',
+      start: 'top top',
+      end: '+=220%',
+      pin: true,
+      scrub: 0.5
+    }
+  });
+  act2
+    .to(sketchLines, {
+      strokeDashoffset: 0,
+      ease: 'none',
+      stagger: 0.35,
+      duration: 5,
+      onStart: function () { caption.textContent = 'pencil…'; }
+    })
+    .add(function () { caption.textContent = 'ink…'; })
+    .to('#sketchSvg .sketch-line', {
+      stroke: '#FF4D7A', strokeDasharray: '1 0',
+      duration: 1.2, ease: 'none', stagger: 0.06
+    })
+    .add(function () { caption.textContent = 'and paper.'; })
+    .to('#miniSite', { duration: 0.1 })
+    .to('.ms-bar',  { opacity: 1, y: 0, duration: 0.8 })
+    .from('.ms-bar', { y: -14 }, '<')
+    .to('.ms-img',  { opacity: 1, duration: 0.9 })
+    .from('.ms-img', { scale: 0.92 }, '<')
+    .to('.ms-copy', { opacity: 1, duration: 0.9 })
+    .from('.ms-copy', { y: 20 }, '<')
+    .to('#sketchSvg', { opacity: 0, duration: 0.8 }, '<')
+    .to('.mini-site', { duration: 0.6 });
+
+  gsap.set('.mini-site > *', { opacity: 0 });
+
+  /* ---- Velocity-reactive marquee ----------------------------------- */
+  function marqueeRow(id, dir) {
+    var row = document.getElementById(id);
+    var x = 0;
+    var base = 0.6 * dir;
+    var boost = 0;
+    var skewTo = gsap.quickTo(row, 'skewX', { duration: 0.4, ease: 'power2.out' });
+    ScrollTrigger.create({
+      start: 0, end: 'max',
+      onUpdate: function (self) {
+        var v = self.getVelocity();
+        boost = gsap.utils.clamp(-14, 14, v / 60) * dir;
+        skewTo(gsap.utils.clamp(-10, 10, v / 90));
+      }
+    });
+    gsap.ticker.add(function () {
+      x += base + boost;
+      boost *= 0.92;
+      var half = row.scrollWidth / 2;
+      if (x <= -half) x += half;
+      if (x > 0) x -= half;
+      row.style.transform = 'translateX(' + x + 'px) skewX(' + gsap.getProperty(row, 'skewX') + 'deg)';
+    });
+  }
+  marqueeRow('row1', -1);
+  marqueeRow('row2', 1);
+
+  /* ---- Deck: cards scale back as the next arrives -------------------- */
+  document.querySelectorAll('.deck-card').forEach(function (card, i, all) {
+    if (i === all.length - 1) return;
+    gsap.to(card, {
+      scale: 0.92, opacity: 0.55, filter: 'blur(1.5px)',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: all[i + 1],
+        start: 'top 90%',
+        end: 'top 12vh',
+        scrub: true
+      }
+    });
+  });
+
+  /* ---- Manifesto ink fill --------------------------------------------- */
+  var man = document.getElementById('manifesto');
+  var nodes = Array.prototype.slice.call(man.childNodes);
+  man.innerHTML = '';
+  nodes.forEach(function (node) {
+    var em = node.nodeName === 'EM';
+    node.textContent.split(/\s+/).forEach(function (w) {
+      if (!w) return;
+      var s = document.createElement('span');
+      s.className = 'word' + (em ? ' em' : '');
+      s.textContent = w;
+      man.appendChild(s);
+      man.appendChild(document.createTextNode(' '));
+    });
+  });
+  gsap.to('#manifesto .word', {
+    opacity: 1, ease: 'none', stagger: 0.6,
+    scrollTrigger: {
+      trigger: '.manifesto',
+      start: 'top 75%', end: 'bottom 45%', scrub: 0.4
+    }
+  });
+
+  /* ---- Closing: title + the signature signs itself --------------------- */
+  gsap.from('#closingTitle', {
+    y: 60, opacity: 0, duration: 1.2, ease: 'power3.out',
+    scrollTrigger: { trigger: '.closing', start: 'top 70%' }
+  });
+  var sig = document.getElementById('sigPath');
+  prepDraw(sig);
+  gsap.to(sig, {
+    strokeDashoffset: 0, duration: 2.6, ease: 'power1.inOut',
+    scrollTrigger: { trigger: '.signature', start: 'top 78%' }
+  });
+
+  /* ---- Atmosphere: gilt dust + rose blooms + lamplight ------------------ */
+  var canvas = document.getElementById('dustCanvas');
+  var ctx = canvas.getContext('2d');
+  var W, H, motes = [], blots = [];
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  setInterval(function () {
+    if (motes.length < 70) motes.push({
+      x: Math.random() * W, y: H + 10,
+      r: 0.6 + Math.random() * 1.6,
+      vy: 0.12 + Math.random() * 0.3,
+      vx: (Math.random() - 0.5) * 0.18,
+      tw: Math.random() * Math.PI * 2,
+      tws: 0.005 + Math.random() * 0.02
+    });
+  }, 300);
+
+  function addBlot(x, y, r, life, drift) {
+    if (blots.length > 50) blots.shift();
+    blots.push({ x: x, y: y, r: r, maxR: r * (2.4 + Math.random()),
+      life: life, age: 0,
+      dx: (Math.random() - 0.5) * drift, dy: (Math.random() - 0.5) * drift });
+  }
+  setInterval(function () {
+    addBlot(Math.random() * W, Math.random() * H, 50 + Math.random() * 100,
+            900 + Math.random() * 600, 0.3);
+  }, 2800);
+
+  var lastSpawn = 0;
+  if (fine) {
+    window.addEventListener('mousemove', function (e) {
+      var now = performance.now();
+      if (now - lastSpawn > 80) {
+        addBlot(e.clientX, e.clientY, 12 + Math.random() * 16, 150, 1.4);
+        lastSpawn = now;
+      }
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = blots.length - 1; i >= 0; i--) {
+      var b = blots[i];
+      if (++b.age > b.life) { blots.splice(i, 1); continue; }
+      var t = b.age / b.life;
+      var r = b.r + (b.maxR - b.r) * t;
+      var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+      g.addColorStop(0, 'rgba(255,77,122,' + (0.07 * (1 - t)) + ')');
+      g.addColorStop(1, 'rgba(255,77,122,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
+      b.x += b.dx; b.y += b.dy;
+    }
+    for (var m = motes.length - 1; m >= 0; m--) {
+      var p = motes[m];
+      p.y -= p.vy; p.x += p.vx; p.tw += p.tws;
+      if (p.y < -10) { motes.splice(m, 1); continue; }
+      ctx.fillStyle = 'rgba(216,162,74,' + (0.25 + Math.abs(Math.sin(p.tw)) * 0.5) + ')';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  var lamp = document.getElementById('lamplight');
+  var lx = innerWidth / 2, ly = innerHeight / 3, lcx = lx, lcy = ly;
+  if (fine) window.addEventListener('mousemove', function (e) { lx = e.clientX; ly = e.clientY; });
+  gsap.ticker.add(function () {
+    lcx += (lx - lcx) * 0.04; lcy += (ly - lcy) * 0.04;
+    lamp.style.left = lcx + 'px'; lamp.style.top = lcy + 'px';
+  });
+
+  /* ---- Cursor + magnet --------------------------------------------------- */
+  if (fine) {
+    var dot = document.getElementById('cursorDot');
+    var ring = document.getElementById('cursorRing');
+    var rx = 0, ry = 0, tx = 0, ty = 0;
+    window.addEventListener('mousemove', function (e) {
+      tx = e.clientX; ty = e.clientY;
+      dot.style.transform = 'translate(' + tx + 'px,' + ty + 'px) translate(-50%,-50%)';
+    });
+    gsap.ticker.add(function () {
+      rx += (tx - rx) * 0.14; ry += (ty - ry) * 0.14;
+      ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)';
+    });
+    document.querySelectorAll('a, .deck-card').forEach(function (el) {
+      el.addEventListener('mouseenter', function () { ring.classList.add('is-hover'); });
+      el.addEventListener('mouseleave', function () { ring.classList.remove('is-hover'); });
+    });
+
+    var btn = document.getElementById('magnetBtn');
+    btn.addEventListener('mousemove', function (e) {
+      var r = btn.getBoundingClientRect();
+      gsap.to(btn, {
+        x: (e.clientX - (r.left + r.width / 2)) * 0.3,
+        y: (e.clientY - (r.top + r.height / 2)) * 0.3,
+        duration: 0.4, ease: 'power2.out'
+      });
+    });
+    btn.addEventListener('mouseleave', function () {
+      gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.4)' });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
