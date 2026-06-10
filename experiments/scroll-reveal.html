@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Experiment i — Homepage with scroll motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F7F4ED;
+  --bg-soft: #EFEBE0;
+  --bg-card: #FDFBF6;
+  --ink: #1A1714;
+  --ink-soft: #5C544D;
+  --ink-softer: #8B847B;
+  --rule: #DDD8CB;
+  --rule-soft: #E8E3D5;
+  --accent: #7E2046;
+  --accent-soft: #A04A6C;
+  --accent-pale: #F2E4EA;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: #F7F4ED !important; }
+
+body {
+  margin: 0;
+  background: #F7F4ED !important;
+  color: #1A1714 !important;
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  line-height: 1.6;
+  font-size: 18px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  font-feature-settings: 'dlig' 1, 'liga' 1, 'kern' 1;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Topbar */
+.topbar {
+  padding: 28px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+}
+.mast-name {
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 28px;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-decoration: none;
+}
+.mast-name em {
+  font-weight: 500;
+  color: var(--accent);
+}
+.topbar nav { display: flex; gap: 32px; }
+.topbar nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
+  transition: color 0.2s;
+}
+.topbar nav a:hover { color: var(--accent); }
+
+/* Eyebrow */
+.eyebrow {
+  font-family: 'Newsreader', serif;
+  font-size: 22px;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0;
+  color: var(--accent);
+  margin-bottom: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.eyebrow::before {
+  content: '';
+  width: 44px;
+  height: 1px;
+  background: var(--accent);
+}
+
+/* Ornament divider */
+.ornament {
+  text-align: center;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-soft);
+  font-size: 28px;
+  line-height: 1;
+  padding: 80px 0 0;
+  letter-spacing: 0.4em;
+}
+
+/* Hero */
+.hero {
+  padding: 120px 0 140px;
+  max-width: 1000px;
+}
+.hero h1 {
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(48px, 7.5vw, 92px);
+  line-height: 1.08;
+  letter-spacing: -0.018em;
+  margin: 0 0 40px;
+  color: var(--ink);
+}
+.hero h1 .hl {
+  color: var(--accent);
+  font-weight: 500;
+}
+.hero .sub {
+  font-size: 21px;
+  line-height: 1.6;
+  max-width: 56ch;
+  color: var(--ink-soft);
+  margin: 0;
+  font-weight: 400;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 28px;
+  background: var(--ink);
+  color: var(--bg);
+  text-decoration: none;
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 19px;
+  border-radius: 100px;
+  letter-spacing: -0.005em;
+  transition: background 0.2s ease;
+}
+.hero-cta:hover { background: var(--accent); }
+.hero-cta::after { content: '→'; font-size: 18px; font-style: normal; }
+.hero-tag {
+  margin-left: 20px;
+  font-size: 15px;
+  color: var(--ink-softer);
+  font-style: italic;
+}
+
+/* Section base */
+section {
+  padding: 120px 0;
+  border-top: 1px solid var(--rule);
+}
+.section-head {
+  max-width: 740px;
+  margin-bottom: 64px;
+}
+.section-head h2 {
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  font-size: clamp(36px, 4.5vw, 54px);
+  line-height: 1.14;
+  letter-spacing: -0.015em;
+  margin: 0 0 22px;
+  color: var(--ink);
+}
+.section-head h2 em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 400;
+}
+.section-head .lede {
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 56ch;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Problem */
+.problem-body { max-width: 700px; }
+.problem-body p {
+  font-size: 19px;
+  line-height: 1.75;
+  color: var(--ink);
+  margin: 0 0 1.4em;
+}
+.problem-quote {
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.32;
+  letter-spacing: -0.012em;
+  color: var(--accent);
+  margin: 44px 0;
+}
+.problem-quote::before {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 1px;
+  background: var(--accent);
+  margin-bottom: 28px;
+}
+
+/* Process */
+.steps { display: grid; gap: 16px; }
+.step {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 36px;
+  padding: 38px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  align-items: start;
+  transition: border-color 0.25s ease;
+}
+.step:hover { border-color: var(--accent-soft); }
+.step-num {
+  font-family: 'Newsreader', serif;
+  font-size: 40px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.005em;
+}
+.step h3 {
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 26px;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.step p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* Do / Don't */
+.do-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 720px;
+}
+.do-card {
+  padding: 38px 36px;
+  border-radius: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-bottom: 3px solid var(--accent);
+}
+.do-card.no { background: var(--bg-soft); border-color: var(--rule); }
+.do-card h3 {
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  font-size: 24px;
+  margin: 0 0 28px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.do-card h3 em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 400;
+}
+.do-card.no h3 em { color: var(--ink-soft); }
+.do-card ul { list-style: none; padding: 0; margin: 0; }
+.do-card li {
+  padding: 11px 0;
+  display: flex;
+  gap: 14px;
+  line-height: 1.55;
+  font-size: 17px;
+  color: var(--ink);
+}
+.do-card.no li { color: var(--ink-soft); }
+.do-card.yes li::before {
+  content: '·';
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+.do-card.no li::before {
+  content: '·';
+  color: var(--ink-softer);
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Portfolio */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+.project {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-bottom: 3px solid var(--accent);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+.project:hover { border-color: var(--accent-soft); border-bottom-color: var(--accent); }
+.project-image {
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(135deg, var(--accent-pale) 0%, var(--bg-soft) 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.project-num {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 76px;
+  font-weight: 400;
+  color: var(--accent);
+  opacity: 0.28;
+  letter-spacing: -0.02em;
+}
+.project-body {
+  padding: 30px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.project-meta {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-softer);
+  margin: 0;
+}
+.project-name {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 26px;
+  color: var(--accent);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+.project-desc {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  margin: 0;
+}
+.project-quote {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--accent-soft);
+  line-height: 1.55;
+}
+.project-author {
+  font-size: 14px;
+  color: var(--ink-softer);
+  margin: 0;
+  font-style: italic;
+}
+.project-link {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--accent);
+  text-decoration: none;
+  margin: auto 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule-soft);
+  transition: color 0.2s;
+}
+.project-link:hover { color: var(--ink); }
+
+/* Pricing */
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.tier {
+  padding: 40px 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-bottom: 3px solid var(--accent);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.25s ease;
+}
+.tier:hover { border-color: var(--accent-soft); border-bottom-color: var(--accent); }
+.tier.featured {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.tier.featured:hover { border-color: var(--accent); }
+.tier.featured .tier-desc { color: rgba(247, 244, 237, 0.72); }
+.tier.featured ul li { color: rgba(247, 244, 237, 0.9); border-bottom-color: rgba(247, 244, 237, 0.12); }
+.tier .badge {
+  position: absolute;
+  top: -12px;
+  left: 32px;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 4px 14px;
+  border-radius: 2px;
+}
+.tier-name {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+.tier.featured .tier-name { color: var(--accent-soft); }
+.tier-price {
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  font-size: 62px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.tier.featured .tier-price { color: var(--bg); }
+.tier-price small {
+  font-size: 16px;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  color: var(--ink-softer);
+  font-weight: 400;
+  display: block;
+  margin-top: 10px;
+}
+.tier.featured .tier-price small { color: rgba(247, 244, 237, 0.5); }
+.tier-desc {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 22px 0 26px;
+  line-height: 1.6;
+  min-height: 4.5em;
+  font-style: italic;
+}
+.tier ul { list-style: none; padding: 0; margin: 0; font-size: 16px; }
+.tier li {
+  padding: 12px 0;
+  display: flex;
+  gap: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule-soft);
+}
+.tier li:last-child { border-bottom: none; }
+.tier li::before {
+  content: '·';
+  color: var(--accent);
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+}
+.tier.featured li::before { color: var(--accent-soft); }
+
+.annual-note {
+  margin-top: 36px;
+  padding: 28px 32px;
+  background: var(--accent-pale);
+  border-radius: 4px;
+  color: var(--ink);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+}
+.annual-label {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--accent);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+.annual-note .annual-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  font-style: italic;
+}
+
+/* About */
+.about-body { max-width: 700px; }
+.about-body p {
+  font-size: 19px;
+  line-height: 1.75;
+  color: var(--ink);
+  margin: 0 0 1.4em;
+}
+.about-body p:first-of-type::first-letter {
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 72px;
+  line-height: 0.85;
+  float: left;
+  margin: 12px 14px 0 0;
+  color: var(--accent);
+}
+.signature {
+  margin-top: 36px;
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 30px;
+  color: var(--accent);
+  letter-spacing: -0.005em;
+}
+
+/* Closing */
+.closing {
+  padding: 140px 0 110px;
+  border-top: 1px solid var(--rule);
+}
+.closing-inner { max-width: 760px; }
+.closing h2 {
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(42px, 5.5vw, 64px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 14px 0 28px;
+  color: var(--ink);
+}
+.closing h2 .hl {
+  color: var(--accent);
+  font-weight: 400;
+}
+.closing-intro {
+  color: var(--ink-soft);
+  font-size: 21px;
+  margin: 0 0 8px;
+  line-height: 1.6;
+  font-style: italic;
+}
+.closing-note {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-softer);
+  margin: 0 0 44px;
+  font-weight: 400;
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 480px;
+}
+.contact-card {
+  padding: 30px 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.25s ease, border-color 0.25s ease;
+  display: block;
+}
+.contact-card:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.contact-card:hover .contact-label { color: var(--accent-soft); }
+.contact-card:hover .contact-value { color: var(--bg); }
+.contact-label {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  transition: color 0.2s;
+}
+.contact-value {
+  font-family: 'Newsreader', serif;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: color 0.2s;
+}
+
+/* Footer */
+footer {
+  padding: 36px 0 44px;
+  border-top: 1px solid var(--rule);
+  font-family: 'Newsreader', serif;
+  font-size: 15px;
+  color: var(--ink-softer);
+  display: flex;
+  justify-content: space-between;
+  font-weight: 400;
+  font-style: italic;
+}
+footer em {
+  color: var(--accent);
+}
+
+/* Load + scroll animation now supplied by ../css/animations.css */
+
+/* Mobile */
+@media (max-width: 768px) {
+  .wrap { padding: 0 22px; }
+  .topbar nav { display: none; }
+  section { padding: 72px 0; }
+  .hero { padding: 64px 0 88px; }
+  .section-head { margin-bottom: 40px; }
+  .section-head h2 { font-size: 34px; }
+  .tiers, .do-grid { grid-template-columns: 1fr; }
+  .portfolio-grid { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .step { grid-template-columns: 1fr; gap: 8px; padding: 30px 26px; }
+  .step-num { font-size: 36px; }
+  .annual-note { grid-template-columns: 1fr; gap: 8px; }
+  .closing { padding: 88px 0 60px; }
+  footer { flex-direction: column; gap: 8px; text-align: center; }
+  .hero-tag { display: block; margin-left: 0; margin-top: 14px; }
+  body { font-size: 17px; }
+  .ornament { padding: 56px 0 0; font-size: 24px; }
+}
+</style>
+<link rel="stylesheet" href="../css/animations.css">
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="topbar">
+  <a href="#" class="mast-name">Tom <em>Chard</em></a>
+  <nav>
+    <a href="#problem">Why</a>
+    <a href="#process">How</a>
+    <a href="#do">What</a>
+    <a href="#portfolio">Work</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="eyebrow reveal-load d1">A small web practice · Bristol</div>
+  <h1 class="reveal-load d2">Websites for people who'd rather not think about <span class="hl">websites.</span></h1>
+  <p class="sub reveal-load d3">Small, hand-built sites for tradespeople, makers and family businesses across Bristol, Bath and Somerset. Fixed prices. Properly built. Then it's yours.</p>
+</section>
+
+<section id="problem">
+  <div class="section-head reveal-scroll">
+    <div class="eyebrow">The problem</div>
+    <h2>Most small business websites fail one <em>basic test.</em></h2>
+    <p class="lede">They don't tell you what the business actually does.</p>
+  </div>
+  <div class="problem-body reveal-scroll">
+    <div class="problem-quote">You land on the page and half a minute later you still can't tell whether you've found the right business.</div>
+    <p>A row of small thumbnails. A short paragraph about quality materials. A phone number tucked somewhere near the bottom. The business itself is properly good — thirty years of experience, excellent work, loyal customers — but none of that comes across.</p>
+    <p>That's the gap I close. The site explains what you do, who you do it for, and why someone should ring you. Nothing wasted. Nothing in the way.</p>
+  </div>
+</section>
+
+<section id="process">
+  <div class="section-head reveal-scroll">
+    <div class="eyebrow">How it works</div>
+    <h2>A conversation first. <em>Then a website.</em></h2>
+    <p class="lede">Every business needs the website to do something different. The first step is working out what yours needs to do.</p>
+  </div>
+  <div class="steps">
+    <div class="step reveal-scroll">
+      <div class="step-num">i</div>
+      <div>
+        <h3>We talk.</h3>
+        <p>About your business. What you sell, who buys it, how they find you — and the question that matters most: what you'd want a stranger to do after landing on your site.</p>
+      </div>
+    </div>
+    <div class="step reveal-scroll">
+      <div class="step-num">ii</div>
+      <div>
+        <h3>I sketch the site.</h3>
+        <p>Just the structure on a page. What's on the homepage, what's in the gallery, what each page is supposed to achieve. You tell me where it's wrong. We adjust until it's right.</p>
+      </div>
+    </div>
+    <div class="step reveal-scroll">
+      <div class="step-num">iii</div>
+      <div>
+        <h3>I build it.</h3>
+        <p>Hand-built, designed around your business specifically. Photos go where they sell the work. The phone number lives where customers can see it. Mobile-perfect from the first line of code.</p>
+      </div>
+    </div>
+    <div class="step reveal-scroll">
+      <div class="step-num">iv</div>
+      <div>
+        <h3>I hand it over.</h3>
+        <p>The site goes live on your domain. Enquiry form messages come straight to your inbox. I show you how everything works. Done.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="do">
+  <div class="section-head reveal-scroll">
+    <div class="eyebrow">Scope</div>
+    <h2>Websites only. <em>Nothing else.</em></h2>
+    <p class="lede">So you know what you're getting before you pick up the phone.</p>
+  </div>
+  <div class="do-grid">
+    <div class="do-card yes reveal-scroll">
+      <ul>
+        <li>Build new websites for small businesses</li>
+        <li>Rebuild dated or broken sites</li>
+        <li>Photo galleries and enquiry forms</li>
+        <li>Annual care and small refreshes</li>
+        <li>Help you choose and register a domain</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="portfolio">
+  <div class="section-head reveal-scroll">
+    <div class="eyebrow">Recent work</div>
+    <h2>A few sites I've <em>built lately.</em></h2>
+    <p class="lede">Small businesses across Bristol, Bath and Somerset that needed something better than a template.</p>
+  </div>
+  <div class="portfolio-grid">
+    <article class="project reveal-scroll">
+      <div class="project-image">
+        <span class="project-num">i</span>
+      </div>
+      <div class="project-body">
+        <p class="project-meta">Pottery studio · Bristol</p>
+        <h3 class="project-name">Elliebells Pottery</h3>
+        <p class="project-desc">A new site for a Bristol-based ceramicist moving into a fresh workshop. The brief was to give the site the same quiet, considered feeling as the work itself, and to give first-time visitors a clear sense of what's made there before they decide whether to commission a piece.</p>
+        <p class="project-quote">"Tom asked questions about the pottery before he asked questions about the website. The finished site feels like my work, not like a template."</p>
+        <p class="project-author">— Ellie, Elliebells Pottery</p>
+        <a href="#" class="project-link">Visit site →</a>
+      </div>
+    </article>
+    <article class="project reveal-scroll">
+      <div class="project-image">
+        <span class="project-num">ii</span>
+      </div>
+      <div class="project-body">
+        <p class="project-meta">[ Business type · City ]</p>
+        <h3 class="project-name">[ Project name ]</h3>
+        <p class="project-desc">[ A short paragraph about what the business needed and what you built. Two or three sentences keeps it scannable. ]</p>
+        <p class="project-quote">"[ A short testimonial from the client — one or two lines. ]"</p>
+        <p class="project-author">— [ Client name, business ]</p>
+        <a href="#" class="project-link">Visit site →</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="section-head reveal-scroll">
+    <div class="eyebrow">Pricing</div>
+    <h2>Three tiers. <em>Fixed prices.</em> No surprises.</h2>
+    <p class="lede">Pick the one that fits. The price doesn't change after we've talked.</p>
+  </div>
+  <div class="tiers">
+    <div class="tier reveal-scroll">
+      <div class="tier-name">Starter</div>
+      <div class="tier-price">£1,200<small>one-off</small></div>
+      <div class="tier-desc">For sole traders and simple service businesses. First proper website.</div>
+      <ul>
+        <li>Single long-scroll page</li>
+        <li>Up to 6 sections</li>
+        <li>Enquiry form</li>
+        <li>Mobile-perfect</li>
+        <li>Deployed to your domain</li>
+      </ul>
+    </div>
+    <div class="tier featured reveal-scroll">
+      <div class="badge">Most chosen</div>
+      <div class="tier-name">Standard</div>
+      <div class="tier-price">£1,800<small>one-off</small></div>
+      <div class="tier-desc">For established small businesses with a body of work to show.</div>
+      <ul>
+        <li>Up to 6 separate pages</li>
+        <li>Proper navigation</li>
+        <li>Photo gallery</li>
+        <li>Enquiry form</li>
+        <li>Mobile-perfect</li>
+        <li>Deployed to your domain</li>
+      </ul>
+    </div>
+    <div class="tier reveal-scroll">
+      <div class="tier-name">Custom</div>
+      <div class="tier-price">£2,400+<small>one-off</small></div>
+      <div class="tier-desc">For businesses with a need a template can't solve.</div>
+      <ul>
+        <li>Everything in Standard</li>
+        <li>Quote calculator</li>
+        <li>Multi-category gallery</li>
+        <li>Booking or enquiry flow</li>
+        <li>Bespoke to how you work</li>
+      </ul>
+    </div>
+  </div>
+  <div class="annual-note reveal-scroll">
+    <div class="annual-label">Annual care · £200/yr</div>
+    <div class="annual-body">Domain renewal, occasional content updates, a once-yearly review and a small refresh. Optional. Cancel any time. The site is yours either way.</div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-head reveal-scroll">
+    <div class="eyebrow">Who I am</div>
+    <h2>Tom Chard. <em>Bristol.</em></h2>
+  </div>
+  <div class="about-body reveal-scroll">
+    <p>I build websites — small, considered ones, hand-coded for businesses that don't need anything elaborate but do need something good.</p>
+    <p>I work from a small studio at home in Bristol. One or two projects a month, no more — so every site gets my full attention from first conversation to handover. Most clients come from word of mouth, which is the way I like it.</p>
+    <p>If you've found this page and you've got a business that deserves a better website, get in touch. The first conversation is free and there's no script.</p>
+    <div class="signature">— Tom</div>
+  </div>
+</section>
+
+<section id="contact" class="closing">
+  <div class="closing-inner reveal-scroll">
+    <div class="eyebrow">Get in touch</div>
+    <h2>Tell me about <span class="hl">your business.</span></h2>
+    <p class="closing-intro">No quote forms. No scheduling apps. Just a short email to start the conversation.</p>
+    <p class="closing-note">I usually reply within a working day.</p>
+    <div class="contact-grid">
+      <a class="contact-card lift" href="mailto:hello@tomchard.uk">
+        <div class="contact-label">Email</div>
+        <div class="contact-value">hello@tomchard.uk</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>Tom Chard · Bristol · 2026</div>
+  <div>Hand-built, <em>not generated</em></div>
+</footer>
+
+</div>
+
+<script src="../js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playground — Tom Chard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="topbar">
+  <a href="index.html" class="mast-name">Tom <em>Chard</em></a>
+  <span class="mast-tag">design &amp; motion playground</span>
+</header>
+
+<section>
+  <div class="section-head">
+    <div class="eyebrow reveal-load d1">The playground</div>
+    <h1 class="reveal-load d2">Experiments in <em>motion.</em></h1>
+    <p class="lede reveal-load d3">A working notebook of animation and interaction tests. Each experiment is one self-contained page — if it earns its place, it graduates to a real site.</p>
+  </div>
+
+  <div class="experiment-grid">
+    <a class="experiment reveal-scroll" href="experiments/scroll-reveal.html">
+      <div class="experiment-num">i</div>
+      <h3>Homepage, with motion</h3>
+      <p>The tomchard.uk homepage with scroll-triggered reveals layered in. Sections, steps and cards rise into view as you reach them, staggered automatically.</p>
+      <div class="tech">Vanilla JS · IntersectionObserver · no libraries</div>
+    </a>
+    <!-- Next experiment goes here. Copy the card above,
+         point it at a new file in /experiments, and commit. -->
+  </div>
+</section>
+
+<div class="ornament">· · ·</div>
+
+<footer>
+  <div>Tom Chard · Bristol · 2026</div>
+  <div>Hand-built, <em>not generated</em></div>
+</footer>
+
+</div>
+
+<script src="js/main.js" defer></script>
+</body>
+</html>

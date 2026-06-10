@@ -1,0 +1,201 @@
+/* ============================================================
+   tomchard.uk — playground base styles
+   Design tokens extracted from tom-chard-v7_2.html
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+  --bg: #F7F4ED;
+  --bg-soft: #EFEBE0;
+  --bg-card: #FDFBF6;
+  --ink: #1A1714;
+  --ink-soft: #5C544D;
+  --ink-softer: #8B847B;
+  --rule: #DDD8CB;
+  --rule-soft: #E8E3D5;
+  --accent: #7E2046;
+  --accent-soft: #A04A6C;
+  --accent-pale: #F2E4EA;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--bg); }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Newsreader', serif;
+  font-weight: 400;
+  line-height: 1.6;
+  font-size: 18px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  font-feature-settings: 'dlig' 1, 'liga' 1, 'kern' 1;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Topbar */
+.topbar {
+  padding: 28px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+}
+.mast-name {
+  font-weight: 500;
+  font-style: italic;
+  font-size: 28px;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-decoration: none;
+}
+.mast-name em { font-weight: 500; color: var(--accent); }
+.mast-tag {
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-softer);
+}
+
+/* Eyebrow */
+.eyebrow {
+  font-size: 22px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--accent);
+  margin-bottom: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.eyebrow::before {
+  content: '';
+  width: 44px;
+  height: 1px;
+  background: var(--accent);
+}
+
+/* Section base */
+section {
+  padding: 100px 0;
+  border-top: 1px solid var(--rule);
+}
+section:first-of-type { border-top: none; }
+.section-head { max-width: 740px; margin-bottom: 56px; }
+.section-head h1,
+.section-head h2 {
+  font-weight: 400;
+  font-size: clamp(36px, 4.5vw, 54px);
+  line-height: 1.14;
+  letter-spacing: -0.015em;
+  margin: 0 0 22px;
+  color: var(--ink);
+}
+.section-head h1 em,
+.section-head h2 em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 400;
+}
+.section-head .lede {
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 56ch;
+  font-style: italic;
+}
+
+/* Experiment cards (gallery index) */
+.experiment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+.experiment {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-bottom: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 34px 32px;
+  text-decoration: none;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.experiment:hover {
+  border-color: var(--accent-soft);
+  border-bottom-color: var(--accent);
+  transform: translateY(-4px);
+}
+.experiment-num {
+  font-style: italic;
+  font-size: 34px;
+  color: var(--accent);
+  opacity: 0.4;
+  line-height: 1;
+}
+.experiment h3 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 25px;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+.experiment p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.experiment .tech {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-softer);
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+/* Ornament divider */
+.ornament {
+  text-align: center;
+  font-style: italic;
+  color: var(--accent-soft);
+  font-size: 28px;
+  line-height: 1;
+  padding: 64px 0 0;
+  letter-spacing: 0.4em;
+}
+
+/* Footer */
+footer {
+  padding: 36px 0 44px;
+  border-top: 1px solid var(--rule);
+  font-size: 15px;
+  color: var(--ink-softer);
+  display: flex;
+  justify-content: space-between;
+  font-style: italic;
+}
+footer em { color: var(--accent); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .wrap { padding: 0 22px; }
+  section { padding: 64px 0; }
+  .section-head { margin-bottom: 36px; }
+  body { font-size: 17px; }
+  footer { flex-direction: column; gap: 8px; text-align: center; }
+  .mast-tag { display: none; }
+}

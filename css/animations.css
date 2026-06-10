@@ -1,0 +1,86 @@
+/* ============================================================
+   tomchard.uk — animations.css
+   Reusable motion library. Pair with js/main.js for the
+   scroll-triggered classes. Drop this file into any project.
+   ------------------------------------------------------------
+   Classes:
+   .reveal-load        fade-up on page load
+   .d1 … .d4           load delays for staging a sequence
+   .reveal-scroll      fade-up when scrolled into view (needs JS)
+   .reveal-left/right  slide in from the side (needs JS)
+   .draw-line          a rule that draws itself in (needs JS)
+   .lift               gentle rise + shadow on hover
+   ============================================================ */
+
+/* ---- Page-load reveal -------------------------------------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal-load { animation: fadeUp 0.9s cubic-bezier(0.22, 0.7, 0.3, 1) both; }
+.reveal-load.d1 { animation-delay: 0.08s; }
+.reveal-load.d2 { animation-delay: 0.18s; }
+.reveal-load.d3 { animation-delay: 0.28s; }
+.reveal-load.d4 { animation-delay: 0.4s; }
+
+/* ---- Scroll-triggered reveals ------------------------------ */
+/* JS adds .is-visible when the element enters the viewport,
+   and sets --reveal-delay to stagger siblings automatically. */
+
+.reveal-scroll,
+.reveal-left,
+.reveal-right {
+  opacity: 0;
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 0.7, 0.3, 1),
+    transform 0.8s cubic-bezier(0.22, 0.7, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0s);
+  will-change: opacity, transform;
+}
+
+.reveal-scroll { transform: translateY(30px); }
+.reveal-left   { transform: translateX(-36px); }
+.reveal-right  { transform: translateX(36px); }
+
+.reveal-scroll.is-visible,
+.reveal-left.is-visible,
+.reveal-right.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Self-drawing rule ------------------------------------- */
+.draw-line {
+  display: block;
+  height: 1px;
+  background: var(--accent, currentColor);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1s cubic-bezier(0.22, 0.7, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0s);
+}
+.draw-line.is-visible { transform: scaleX(1); }
+
+/* ---- Hover micro-interaction ------------------------------- */
+.lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(26, 23, 20, 0.07);
+}
+
+/* ---- Accessibility: switch everything off on request ------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-load { animation: none; }
+  .reveal-scroll,
+  .reveal-left,
+  .reveal-right,
+  .draw-line {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .lift:hover { transform: none; box-shadow: none; }
+}
