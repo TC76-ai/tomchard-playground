@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Experiment iv — Drawn: a site that draws itself</title>
+<title>Tom Chard — Drawn by hand · a website that draws itself · Bristol</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&family=Pinyon+Script&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #131019;
@@ -101,6 +101,26 @@ body {
 .cursor-ring.is-hover { width: 64px; height: 64px; opacity: .9; }
 @media (hover: hover) and (pointer: fine) { .cursor-dot, .cursor-ring { display: block; } }
 
+/* ---- Masthead --------------------------------------------------- */
+.mast {
+  position: absolute;
+  top: 34px; left: 0;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 26px;
+  color: var(--paper);
+  letter-spacing: -0.005em;
+  opacity: 0;
+}
+.mast em { color: var(--rose); }
+.mast small {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--paper-faint);
+  margin-top: 2px;
+}
+
 /* ---- Hero ------------------------------------------------------ */
 .hero {
   min-height: 100vh;
@@ -138,7 +158,8 @@ body {
 }
 .draw-title .outline {
   color: transparent;
-  -webkit-text-stroke: 1.5px var(--pencil);
+  -webkit-text-stroke: 1.2px rgba(140, 130, 150, 0.7);
+  transition: opacity .6s ease;
 }
 .draw-title .fill {
   position: absolute;
@@ -244,7 +265,8 @@ body {
   color: #1A1714;
   box-shadow: 0 40px 90px rgba(0,0,0,.5);
 }
-.mini-site > * { opacity: 0; }
+.mini-site { opacity: 0; visibility: hidden; }
+.ms-bar, .ms-copy, .ms-img { opacity: 0; }
 .ms-bar {
   display: flex;
   align-items: center;
@@ -289,13 +311,11 @@ body {
 .ms-img {
   aspect-ratio: 4 / 3;
   border-radius: 0.5em;
-  background: linear-gradient(135deg, #F2E4EA, #EFEBE0 60%, #E8E3D5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-style: italic;
-  font-size: 3em;
-  color: #7E2046;
+  background-image:
+    url('../images/elliebells.jpg'),
+    linear-gradient(135deg, #F2E4EA, #EFEBE0 60%, #E8E3D5);
+  background-size: cover, cover;
+  background-position: center, center;
 }
 
 /* ---- Velocity marquee ------------------------------------------ */
@@ -318,7 +338,7 @@ body {
   white-space: nowrap;
   padding-right: 0.6em;
   color: transparent;
-  -webkit-text-stroke: 1px var(--pencil);
+  -webkit-text-stroke: 1.3px rgba(189, 178, 166, 0.55);
 }
 .marquee-row span em { color: var(--rose); -webkit-text-stroke: 0; }
 .marquee-row.r2 span { color: var(--paper); -webkit-text-stroke: 0; }
@@ -394,12 +414,22 @@ body {
   height: auto;
   overflow: visible;
 }
+.signature text {
+  font-family: 'Pinyon Script', cursive;
+  font-size: 84px;
+  fill: var(--gilt);
+  fill-opacity: 0;
+  stroke: var(--gilt);
+  stroke-width: 1;
+}
 .signature path {
   fill: none;
   stroke: var(--gilt);
-  stroke-width: 3;
+  stroke-width: 2.5;
   stroke-linecap: round;
-  stroke-linejoin: round;
+}
+@media (prefers-reduced-motion: reduce) {
+  .signature text { fill-opacity: 1; stroke-dashoffset: 0 !important; }
 }
 .magnet {
   display: inline-flex;
@@ -446,7 +476,9 @@ footer em { color: var(--gilt); }
   .scroll-hint::after { animation: none; }
   .hero .eyebrow, .hero .sub, .scroll-hint { opacity: 1 !important; }
   .draw-title .fill { clip-path: none; }
-  .mini-site > * { opacity: 1 !important; }
+  .mini-site { opacity: 1 !important; visibility: visible !important; }
+  .ms-bar, .ms-copy, .ms-img { opacity: 1 !important; }
+  .sketch-line { stroke-dasharray: 6 7 !important; stroke-dashoffset: 0 !important; }
   .manifesto .word { opacity: 1 !important; }
 }
 </style>
@@ -462,6 +494,7 @@ footer em { color: var(--gilt); }
 
 <div class="wrap">
   <section class="hero">
+    <div class="mast" id="mast">Tom <em>Chard</em><small>websites, drawn by hand &middot; tomchard.uk</small></div>
     <div class="eyebrow" id="heroEyebrow">A small web practice &middot; Bristol &middot; after dark</div>
     <h1 class="draw-title" id="drawTitle">
       <span class="outline">Drawn by hand. Built to last.</span>
@@ -501,7 +534,7 @@ footer em { color: var(--gilt); }
             <p>Small-batch ceramics for kitchens that get used. Commissions open for spring.</p>
             <span class="ms-btn">See the work</span>
           </div>
-          <div class="ms-img">&#9998;</div>
+          <div class="ms-img"></div>
         </div>
       </div>
     </div>
@@ -555,8 +588,9 @@ footer em { color: var(--gilt); }
 
   <section class="closing">
     <h2 id="closingTitle">Every site leaves <span class="hl">signed.</span></h2>
-    <svg class="signature" viewBox="0 0 340 130" aria-hidden="true">
-      <path id="sigPath" d="M22 38 C 60 26, 110 22, 128 30 M76 30 C 70 56, 58 92, 46 108 M104 74 C 96 92, 96 102, 108 98 C 122 92, 128 76, 124 70 C 120 64, 108 72, 112 84 C 116 96, 132 94, 140 82 M156 84 C 150 96, 156 102, 166 96 C 176 90, 178 78, 170 76 C 162 74, 156 82, 158 88 M186 92 C 190 80, 196 72, 204 74 C 210 76, 208 88, 206 94 M206 80 C 212 72, 222 70, 226 76 C 230 82, 226 92, 224 96 M242 60 C 254 56, 300 48, 318 46 M262 46 C 256 70, 248 96, 244 106" />
+    <svg class="signature" viewBox="0 0 460 140" aria-hidden="true">
+      <text id="sigText" x="10" y="95">Tom Chard</text>
+      <path id="sigUnderline" d="M14 118 C 110 106, 290 130, 446 110" />
     </svg>
     <a class="magnet" id="magnetBtn" href="mailto:hello@tomchard.uk">Tell me about your business</a>
   </section>
@@ -595,7 +629,9 @@ footer em { color: var(--gilt); }
   intro
     .from('.draw-title .outline', { opacity: 0, y: 40, duration: 1.0, ease: 'power3.out' })
     .to('#titleFill', { clipPath: 'inset(0 0% 0 0)', duration: 1.6, ease: 'power2.inOut' }, '-=0.2')
+    .to('.draw-title .outline', { opacity: 0, duration: 0.6 }, '-=0.3')
     .to(flourish, { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut' }, '-=1.0')
+    .to('#mast', { opacity: 1, duration: 0.8 }, '-=1.0')
     .to('#heroEyebrow', { opacity: 1, duration: 0.8 }, '-=0.8')
     .to('#heroSub', { opacity: 1, duration: 0.8 }, '-=0.5')
     .to('#scrollHint', { opacity: 1, duration: 0.8 }, '-=0.4');
@@ -607,49 +643,43 @@ footer em { color: var(--gilt); }
   });
 
   /* ---- Act II: pinned sketch-to-site metamorphosis ---------------- */
-  var sketchLines = Array.prototype.slice.call(
-    document.querySelectorAll('#sketchSvg .sketch-line'));
+  var sketchLines = gsap.utils.toArray('#sketchSvg .sketch-line');
   sketchLines.forEach(function (el) {
-    var len = el.getTotalLength ? el.getTotalLength() : 1000;
-    el.style.strokeDasharray = len + ' ' + len;
-    el.style.strokeDashoffset = len;
+    var len = 1000;
+    try { len = el.getTotalLength(); } catch (e) {}
+    gsap.set(el, { strokeDasharray: len, strokeDashoffset: len });
   });
 
   var caption = document.getElementById('stageCaption');
+  var captions = ['pencil\u2026', 'ink\u2026', 'and paper.'];
+
   var act2 = gsap.timeline({
+    defaults: { ease: 'none' },
     scrollTrigger: {
       trigger: '#atelier',
       start: 'top top',
-      end: '+=220%',
+      end: '+=2200',
       pin: true,
-      scrub: 0.5
+      scrub: 0.4,
+      onUpdate: function (self) {
+        var p = self.progress;
+        caption.textContent = p < 0.45 ? captions[0] : (p < 0.6 ? captions[1] : captions[2]);
+      }
     }
   });
-  act2
-    .to(sketchLines, {
-      strokeDashoffset: 0,
-      ease: 'none',
-      stagger: 0.35,
-      duration: 5,
-      onStart: function () { caption.textContent = 'pencil…'; }
-    })
-    .add(function () { caption.textContent = 'ink…'; })
-    .to('#sketchSvg .sketch-line', {
-      stroke: '#FF4D7A', strokeDasharray: '1 0',
-      duration: 1.2, ease: 'none', stagger: 0.06
-    })
-    .add(function () { caption.textContent = 'and paper.'; })
-    .to('#miniSite', { duration: 0.1 })
-    .to('.ms-bar',  { opacity: 1, y: 0, duration: 0.8 })
-    .from('.ms-bar', { y: -14 }, '<')
-    .to('.ms-img',  { opacity: 1, duration: 0.9 })
-    .from('.ms-img', { scale: 0.92 }, '<')
-    .to('.ms-copy', { opacity: 1, duration: 0.9 })
-    .from('.ms-copy', { y: 20 }, '<')
-    .to('#sketchSvg', { opacity: 0, duration: 0.8 }, '<')
-    .to('.mini-site', { duration: 0.6 });
 
-  gsap.set('.mini-site > *', { opacity: 0 });
+  act2
+    /* phase 1: pencil draws, one line after another */
+    .to(sketchLines, { strokeDashoffset: 0, duration: 4.5, stagger: 0.3 })
+    /* phase 2: pencil turns to ink */
+    .to(sketchLines, { stroke: '#FF4D7A', duration: 1.2, stagger: 0.05 })
+    /* phase 3: the finished site materialises */
+    .to('#miniSite', { autoAlpha: 1, duration: 0.6 })
+    .fromTo('.ms-bar',  { opacity: 0, y: -14 },  { opacity: 1, y: 0, duration: 0.8 })
+    .fromTo('.ms-img',  { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.9 })
+    .fromTo('.ms-copy', { opacity: 0, y: 20 },  { opacity: 1, y: 0, duration: 0.9 })
+    .to('#sketchSvg',   { opacity: 0, duration: 0.8 }, '<')
+    .to({}, { duration: 0.8 }); /* hold the finished site before unpinning */
 
   /* ---- Velocity-reactive marquee ----------------------------------- */
   function marqueeRow(id, dir) {
@@ -687,7 +717,7 @@ footer em { color: var(--gilt); }
       scrollTrigger: {
         trigger: all[i + 1],
         start: 'top 90%',
-        end: 'top 12vh',
+        end: 'top 15%',
         scrub: true
       }
     });
@@ -721,12 +751,17 @@ footer em { color: var(--gilt); }
     y: 60, opacity: 0, duration: 1.2, ease: 'power3.out',
     scrollTrigger: { trigger: '.closing', start: 'top 70%' }
   });
-  var sig = document.getElementById('sigPath');
-  prepDraw(sig);
-  gsap.to(sig, {
-    strokeDashoffset: 0, duration: 2.6, ease: 'power1.inOut',
+  var sigText = document.getElementById('sigText');
+  gsap.set(sigText, { strokeDasharray: 1400, strokeDashoffset: 1400 });
+  var underline = document.getElementById('sigUnderline');
+  prepDraw(underline);
+  var sigTl = gsap.timeline({
     scrollTrigger: { trigger: '.signature', start: 'top 78%' }
   });
+  sigTl
+    .to(sigText, { strokeDashoffset: 0, duration: 2.4, ease: 'power1.inOut' })
+    .to(sigText, { fillOpacity: 1, duration: 1.0, ease: 'power2.out' }, '-=0.7')
+    .to(underline, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, '-=0.5');
 
   /* ---- Atmosphere: gilt dust + rose blooms + lamplight ------------------ */
   var canvas = document.getElementById('dustCanvas');
